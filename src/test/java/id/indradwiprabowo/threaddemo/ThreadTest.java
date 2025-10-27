@@ -142,4 +142,20 @@ public class ThreadTest {
         thread.setName("Indra");
         thread.start();
     }
+
+    @Test
+    void threadState() throws InterruptedException {
+        var thread = new Thread(() -> {
+            System.out.println(Thread.currentThread().getState());
+            System.out.println("Runnable in thread : " + Thread.currentThread().getName());
+        });
+
+        // thread.setName()
+        thread.setName("Indra");
+        System.out.println(thread.getState());
+
+        thread.start();
+        thread.join();
+        System.out.println(thread.getState());
+    }
 }
