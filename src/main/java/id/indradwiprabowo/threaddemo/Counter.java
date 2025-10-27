@@ -4,7 +4,7 @@ public class Counter {
 
     private Long value = 0L;
 
-    public void ncrement() {
+    public void increment() {
         value++;
     }
 
