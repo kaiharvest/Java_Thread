@@ -5,39 +5,34 @@ import org.junit.jupiter.api.Test;
 import java.util.Random;
 import java.util.concurrent.*;
 
-
 public class CompletableFutureTest {
 
-    private ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private final Random random = new Random();
 
-    private Random random = new Random();
-
-    public Future<String> getValue() {
-        CompletableFuture<String> future = new CompletableFuture<>();
-
-        executorService.execute(() -> {
+    public CompletableFuture<String> getValue() {
+        return CompletableFuture.supplyAsync(() -> {
             try {
                 Thread.sleep(2000);
-                future.complete("Selesai");
+                return "Selesai";
             } catch (InterruptedException e) {
-                future.completeExceptionally(e);
+                throw new CompletionException(e);
             }
-        });
-
-        return future;
-    };
+        }, executorService);
+    }
 
     @Test
-    void create() throws ExecutionException, InterruptedException {
+    void testGetValue() throws ExecutionException, InterruptedException {
         Future<String> future = getValue();
-
+        System.out.println("Menunggu hasil dari getValue()...");
         System.out.println(future.get());
     }
 
     private void execute(CompletableFuture<String> future, String value) {
         executorService.execute(() -> {
             try {
-                Thread.sleep(1000 * random.nextInt(5000));
+                Thread.sleep(1000 + random.nextInt(4000));
+                System.out.println("Thread " + value + " selesai.");
                 future.complete(value);
             } catch (InterruptedException e) {
                 future.completeExceptionally(e);
@@ -45,7 +40,7 @@ public class CompletableFutureTest {
         });
     }
 
-    public Future<String> getFasttest() {
+    public Future<String> getFastest() {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         execute(future, "Thread 1");
@@ -56,8 +51,22 @@ public class CompletableFutureTest {
     }
 
     @Test
-    void testFasttest() throws ExecutionException, InterruptedException {
-        System.out.println(getFasttest().get());
+    void testGetFastest() throws ExecutionException, InterruptedException {
+        System.out.println("Mencari thread tercepat...");
+        Future<String> fastest = getFastest();
+        System.out.println("Thread tercepat adalah: " + fastest.get());
     }
 
+    @Test
+    void testCompletableFutureStage() throws ExecutionException, InterruptedException {
+        CompletableFuture<String> future = getValue();
+        CompletableFuture<String[]> future2 = future
+                .thenApply(String::toUpperCase)
+                .thenApply(s -> s.split(""));
+
+        String[] result = future2.get();
+        for (var value : result) {
+            System.out.println(value);
+        }
+    }
 }
