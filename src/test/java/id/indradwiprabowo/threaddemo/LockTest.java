@@ -77,12 +77,24 @@ public class LockTest {
             }
         });
 
+        var thread3 = new Thread(() -> {
+            try {
+                lock.lock();
+                condition.await();
+                System.out.println(massage);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+            }
+        });
+
         var thread2 = new Thread(() -> {
             try {
                 lock.lock();
                 Thread.sleep(2000);
                 massage = "Indra Dwi Prabowo";
-                condition.signal();
+                condition.signalAll();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
@@ -91,9 +103,11 @@ public class LockTest {
         });
 
         thread1.start();
+        thread3.start();
         thread2.start();
 
         thread1.join();
+        thread3.join();
         thread2.join();
 
     }
