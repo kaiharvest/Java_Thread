@@ -1,0 +1,224 @@
+package id.indradwiprabowo.threaddemo;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.Comparator;
+import java.util.concurrent.*;
+
+public class BlockingQueueTest {
+
+    @Test
+    void arrayBlockingQueue() throws InterruptedException {
+        final var queue = new ArrayBlockingQueue<String>(5);
+        final var executor = Executors.newFixedThreadPool(20);
+
+        for (var i = 0; i < 10; i++) {
+            executor.execute(() -> {
+                try {
+                    queue.put("Data");
+                    System.out.println("Finish Put Data");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        executor.execute(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(2000);
+                    var value = queue.take();
+                    System.out.println("Receive data : " + value);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        executor.awaitTermination(1, TimeUnit.DAYS);
+    }
+
+    @Test
+    void linkedBlockingQueue() throws InterruptedException {
+        final var queue = new LinkedBlockingDeque<String>();
+        final var executor = Executors.newFixedThreadPool(20);
+
+        for (var i = 0; i < 10; i++) {
+            executor.execute(() -> {
+                try {
+                    queue.put("Data");
+                    System.out.println("Finish Put Data");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        executor.execute(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(2000);
+                    var value = queue.take();
+                    System.out.println("Receive data : " + value);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        executor.awaitTermination(1, TimeUnit.DAYS);
+    }
+
+    @Test
+    void priorityBlockingQueue() throws InterruptedException {
+        final var queue = new PriorityBlockingQueue<Integer>(10, Comparator.reverseOrder());
+        final var executor = Executors.newFixedThreadPool(20);
+
+        for (var i = 0; i < 10; i++) {
+            int index = i;
+            executor.execute(() -> {
+                queue.put(index);
+                System.out.println("Success put data : " + index);
+            });
+        }
+
+        executor.execute(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(2000);
+                    var value = queue.take();
+                    System.out.println("Receive data : " + value);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        executor.awaitTermination(1, TimeUnit.DAYS);
+
+    }
+
+    @Test
+    void delayQueue() throws InterruptedException {
+        final var queue = new DelayQueue<ScheduledFuture<String>>();
+        final var executor = Executors.newFixedThreadPool(20);
+        final var executorScheduled = Executors.newScheduledThreadPool(10);
+
+        for (var i = 1; i <= 10; i++) {
+            int index = i;
+            queue.put(executorScheduled.schedule(() -> "Data " + index, i, TimeUnit.SECONDS));
+        }
+
+        executor.execute(() -> {
+            while (true) {
+                try {
+                    var value = queue.take();
+                    System.out.println("Receive data : " + value.get());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        executor.awaitTermination(1, TimeUnit.DAYS);
+
+    }
+
+    @Test
+    void synchronouseQueue() throws InterruptedException {
+        final var queue = new SynchronousQueue<String>();
+        final var executor = Executors.newFixedThreadPool(20);
+
+        for (var i = 0; i < 10; i++) {
+            int index = i;
+            executor.execute(() -> {
+                try {
+                    queue.put("Data-" + index);
+                    System.out.println("Finish Put Data: " + index);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        executor.execute(() -> {
+            while (true) {
+                try {
+                    String value = queue.take();
+                    System.out.println("Receive data : " + value);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        executor.awaitTermination(1, TimeUnit.MINUTES);
+
+    }
+
+    @Test
+    void blockingDequeue() throws InterruptedException {
+        final var queue = new LinkedBlockingDeque<String>();
+        final var executor = Executors.newFixedThreadPool(20);
+
+        for (var i = 0; i < 10; i++) {
+            int index = i;
+            try {
+                queue.putLast("Data-" + index);
+                System.out.println("Finish Put Data: " + index);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        executor.execute(() -> {
+            while (true) {
+                try {
+                    String value = queue.takeFirst();
+                    System.out.println("Receive data : " + value);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        executor.awaitTermination(1, TimeUnit.DAYS);
+
+    }
+
+    @Test
+    void transferDequeue() throws InterruptedException {
+        final var queue = new LinkedTransferQueue<String>();
+        final var executor = Executors.newFixedThreadPool(20);
+
+        for (var i = 0; i < 10; i++) {
+            final int index = i;
+            executor.execute(() -> {
+                try {
+                    queue.transfer("Data-" + index);
+                    System.out.println("Finish Put Data " + index);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+
+        executor.execute(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(2000);
+                    String value = queue.take();
+                    System.out.println("Receive data : " + value);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+
+        executor.awaitTermination(1, TimeUnit.DAYS);
+
+    }
+
+}
